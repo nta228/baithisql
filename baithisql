@@ -1,0 +1,70 @@
+--1.
+CREATE DATABASE MyBlog
+use MyBlog
+--2 , 3
+CREATE TABLE Users(UserID int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+UserName varchar(20) NOT NULL,
+Password varchar(30) NOT NULL,
+Email varchar(30) NOT NULL UNIQUE,
+Address nvarchar(200))
+
+CREATE TABLE Posts(PostID int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+Title nvarchar(200) NOT NULL,
+Content nvarchar NOT NULL,
+Tag nvarchar(100) NULL,
+Status bit,
+CreateTime datetime DEFAULT(getdate()),
+UpdateTime datetime,
+UserID int,
+FOREIGN KEY(UserID) REFERENCES Users(UserID) )
+
+CREATE TABLE Comments(CommentID int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+Content nvarchar(500),
+Status bit,
+CreateTime datetime DEFAULT(getdate()),
+Author nvarchar(30),
+Email varchar(50) NOT NULL,
+PostID int,
+FOREIGN KEY(PostID) REFERENCES Posts(PostID))
+
+ALTER TABLE Comments
+ADD CHECK (Email like '%@%')
+
+ALTER TABLE Users
+ADD CHECK (Email like '%@%')
+
+CREATE INDEX ID_UserName
+ON Users(UserName)
+
+INSERT INTO Users VALUES ('abc','123','abc@gmail.com','Hung Yen')
+INSERT INTO Users VALUES ('abcdef','12123','abc312@gmail.com','Ha Noi')
+INSERT INTO Users VALUES ('tuan','123','anh@gmail.com','Hai Phong')
+
+INSERT INTO Posts VALUES ('abcc', N'coca', 'Social', 'true', getdate(),getdate(), 1 )
+INSERT INTO Posts VALUES ('pepsi1', N'pepsi', 'a', 'true', getdate(),getdate(), 2 )
+INSERT INTO Posts VALUES ('fanta1', N'fanta', 'b', 'true', getdate(),getdate(), 3 )
+
+INSERT INTO Comments VALUES ('aaa','true', getdate()+5, 'tanh','tanh@gmail.com', 1)
+INSERT INTO Comments VALUES ('bbb','true', getdate()-4, 'tanh1','tanh1@gmail.com', 2)
+INSERT INTO Comments VALUES ('ccc','true', getdate()-40, 'tanh2','tanh2@gmail.com', 3)
+
+SELECT * FROM Posts WHERE Tag = 'Social'
+
+SELECT * FROM Posts WHERE UserID in (SELECT UserID From Users WHERE Email='abc@gmail.com')
+
+SELECT COUNT(*) as Count FROM Comments
+
+CREATE VIEW v_NewPost AS 
+SELECT  TOP 2 dbo.Posts.Title, dbo.Users.UserName, dbo.Posts.CreateTime
+FROM            dbo.Posts INNER JOIN
+                         dbo.Users ON dbo.Posts.UserID = dbo.Users.UserID
+ORDER BY dbo.Posts.CreateTime DESC
+
+CREATE Procedure sp_GetComment 
+	@PostID int
+AS
+BEGIN
+	SELECT * FROM Comments where PostID = @PostID
+END
+
+GO
